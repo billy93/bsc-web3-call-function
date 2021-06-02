@@ -1,0 +1,197 @@
+<html>
+  <head>
+    <title>Test</title>
+    <script src="https://unpkg.com/web3@latest/dist/web3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.1.umd.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+//       window.addEventListener('load', function () {
+//           if (typeof web3 !== 'undefined') {
+//               console.log('Web3 Detected! ' + web3.currentProvider.constructor.name)
+//               window.web3 = new Web3(web3.currentProvider);
+//           } else {
+//               console.log('No Web3 Detected... using HTTP Provider')
+// //              window.web3 = new Web3(new Web3.providers.HttpProvider("https://bsc-dataseed.binance.org"));
+//               window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+//           }
+//       })
+
+  // const getBlockchain = () =>
+  //   new Promise( async (resolve, reject) => {
+  //     let provider = await detectEthereumProvider();
+  //     if(provider) {
+  //       await provider.request({ method: 'eth_requestAccounts' });
+  //       const networkId = await provider.request({ method: 'net_version' })
+  //       provider = new ethers.providers.Web3Provider(provider);
+  //       const signer = provider.getSigner();
+  //       const simpleStorage = new Contract(
+  //         SimpleStorage.networks[networkId].address,
+  //         SimpleStorage.abi,
+  //         signer
+  //       );
+  //       resolve({simpleStorage});
+  //       return;
+  //     }
+  //     reject('Install Metamask');
+  //   });
+      const getBlockchain = () => {
+        return new Promise((resolve, reject) => {
+          window.addEventListener("load", async () => {
+
+            let provider = await detectEthereumProvider();
+
+            if (provider) {
+              await provider.request({ method: 'eth_requestAccounts' });
+              const networkId = await provider.request({ method: 'net_version' })
+              provider = new ethers.providers.Web3Provider(provider);
+              const signer = provider.getSigner();
+              const data = await $.getJSON("build/contracts/upbnb.json");
+              const simpleStorage = new ethers.Contract(
+                "0x9C3Bbff333F4AEAB60B3c060607b7C505Ff30C82",
+                data,
+                signer
+              );
+              resolve({simpleStorage});
+              return;
+            }
+            reject('Install Metamask');
+
+            // const web3 = new Web3('https://bsc-dataseed1.binance.org:443');
+            // if (window.ethereum) {
+            //   const web3 = new Web3('https://bsc-dataseed.binance.org');
+            // //   const web3 = new Web3(window.ethereum);
+            //   try {
+            //     // ask user permission to access his accounts
+            //     await window.ethereum.request({ method: "eth_requestAccounts" });
+            //     resolve(web3);
+            //   } catch (error) {
+            //     reject(error);
+            //   }
+            // } else {
+            //   reject("Must install MetaMask");
+            // }
+          });
+        });
+      };
+
+      async function checkSize(){
+          const {simpleStorage} = await getBlockchain();
+          var addresses = 
+            [
+            "0x86534bc74806889d90a3b624e58335a00151fd8d",
+            "0xb4f1af87d708eb2e3d9429f5f5e8a17496d81edc",
+            "0x4a403ecc4e55da801da79a6c5cb0b9fdab87b296",
+            "0x8e84b7168e4f0ab5314e075d480950ed73166bd9",
+            "0xf291c0a4acec44069ed60cbf6da372918395e2fc",
+            "0xbc3f04ed9967b90592715835e49f1589595fb8d1",
+            "0x06b4f5e05c7df0b56104255098a53e0b70ab0203",
+            "0x80fa0866bbbab5c2aa0293cbdb0aaefcdec536ca",
+            "0x6f8aec8633fd1f0fe6acf24fb862b8726df85715",
+            "0x086dbcf9d25b476aaba8ae02cea177870d27b64c"
+          ];
+
+          for(var x=0;x<addresses.length;x++){
+              const idx = x;
+              var s = await simpleStorage.balanceOf(addresses[idx]);
+
+              console.log("Address: ", addresses[idx].trim());
+              console.log("The balance is: ", s.toString());
+              console.log("Start burn...");
+
+              var burn = await simpleStorage.burn(addresses[idx].trim(), s.toString());
+              console.log("Burn transaction: ", burn.hash);
+              console.log("========================");
+          }
+        /*
+        // const web3 = await getWeb3();
+        // const accounts = await web3.eth.getAccounts();
+        // const contract = await getContract(web3);
+
+        alert("Ready to burn");
+        var addresses = 
+            ["0x76303c6c99a20500db01f65f1e8f44afd9cb9ee8",
+            // "0xd1107971dea136439de5e082928bdc5655cea20d"
+          ];
+            
+            for(var x=0;x<addresses.length;x++){
+              const idx = x;
+              contract.methods.balanceOf(addresses[idx]).call(function (err, res) {
+                  if (err) {
+                    console.log("An error occured", err)
+                    return
+                  }
+
+                  console.log("Address: ", addresses[idx].trim());
+                  console.log("The balance is: ", res.toString());
+                  console.log("Start burn...");
+
+                  // let result = BigNumber(res);
+                  // console.log(addresses[idx].trim());
+                  // console.log(res);
+                  contract.methods.burn(addresses[idx].trim(), res).send({from:"0x6fa5dee527A7108a199B96f8f85E644aa92A611e"}, function (err2, res2) {
+                    if (err2) {
+                      console.log("An error occured", err2)
+                      return
+                    }
+                    console.log("Hash of the transaction: " + res2);
+                  });    
+                  console.log("==========================");
+              });
+            }
+          */
+      }
+
+    //   async function burn(){
+    //     const web3 = await getWeb3();
+    //     const accounts = await web3.eth.getAccounts();
+    //     const contract = await getContract(web3);
+
+    //     var addresses = [
+    //       "0x38BF2Caf81e79e0f18c0f4281A50c07FBAa63341",
+    //     "0x1959877F139f814bC33F033DacC2CeEc15C647A8",
+    //     "0xD8C01BaCc7A119a8D13286CB7Aa99A388AAF4faA",
+    //     "0x85eF070413170b915E9B22483298EA58817216F8",
+    //     "0x80497B0951512BD16cce3183e114CA3Ca1dab1F7",
+    //     "0x533535104b4571dc87811b45456d2f997ca6c68E",
+    //     "0x6F8F2A709A24E188057ffefBc3CE6a587C5A3A55",
+    //     "0x4A1Ee14AEA3A4002795c5710382FD70D41aC5A20",
+    //     "0x7922B5AdA27939738F93FF7A983eF95c97AB712b",
+    //     "0xecF1AcF0b86370c2803Fd6269D0BF405934F7Bd7"];
+
+
+    //   for(var x=0;x<addresses.length;x++){
+    //     res = await contract.methods.burnFrom(addresses[x], 10).send({from:"0x38BF2Caf81e79e0f18c0f4281A50c07FBAa63341"});      
+    //   }
+    //   alert("BURNED ALL 10 ADDRESS");
+    // }
+
+    checkSize();
+    // burn();
+  </script>
+  </head>
+  <body>
+
+    <h1>BNB Balance Fetcher</h1>
+    <p>Enter your BNB Address:</p>
+    <input type="text" size="50" id="address" />
+    <button type="button" onClick="getBalance();">Get Balance</button>
+    <br />
+    <br />
+    <div id="output"></div>
+
+    <h1>TEST Burn all 10 Address Token </h1>
+    <input type="text" id="address1" value=""/>
+    <!-- <input type="text" id="address2"/>
+    <input type="text" id="address3"/>
+    <input type="text" id="address4"/>
+    <input type="text" id="address5"/>
+    <input type="text" id="address6"/>
+    <input type="text" id="address7"/>
+    <input type="text" id="address8"/>
+    <input type="text" id="address9"/>
+    <input type="text" id="address10"/> -->
+
+    <button type="button" id="burnButton" onclick="burnButton()">BURN</button>
+  </body>
+</html>

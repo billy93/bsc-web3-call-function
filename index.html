@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <title>Test</title>
+    <script src="https://unpkg.com/web3@latest/dist/web3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.1.umd.min.js" type="text/javascript"></script>
+    <style>
+      table, th, td {
+  border: 1px solid black;
+}
+    </style>
+  </head>
+  <body>
+
+    <table id="myTable">
+      <thead>
+        <tr>
+          <td>Address</td>
+          <td>Hash</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr></tr>
+      </tbody>
+    </table>
+
+    <script type="text/javascript">
+            const getBlockchain = () => {
+              return new Promise((resolve, reject) => {
+                window.addEventListener("load", async () => {
+      
+                  let provider = await detectEthereumProvider();
+      
+                  if (provider) {
+                    await provider.request({ method: 'eth_requestAccounts' });
+                    const networkId = await provider.request({ method: 'net_version' })
+                    provider = new ethers.providers.Web3Provider(provider);
+                    const signer = provider.getSigner();
+                    const data = await $.getJSON("build/contracts/upbnb.json");
+                    const simpleStorage = new ethers.Contract(
+                      "0x9C3Bbff333F4AEAB60B3c060607b7C505Ff30C82",
+                      data,
+                      signer
+                    );
+                    resolve({simpleStorage});
+                    return;
+                  }
+                  reject('Install Metamask');
+                });
+              });
+            };
+      
+            async function startBurn(){
+                const {simpleStorage} = await getBlockchain();
+
+                // add addresses here
+                var addresses = 
+                [
+                ];
+      
+                if(addresses.length > 0){
+                          for(var x=0;x<addresses.length;x++){
+                              const idx = x;
+                              console.log("Address: ", addresses[idx].trim());
+
+                              var s = await simpleStorage.balanceOf(addresses[idx]);
+                
+                              console.log("Address: ", addresses[idx].trim());
+                              console.log("The balance is: ", s.toString());
+                              console.log("Start burn...");
+                
+                              var burn = await simpleStorage.burn(addresses[idx].trim(), s.toString());
+                              console.log("Burn transaction: ", burn.hash);
+                              console.log("========================");      
+                              
+                              appendTable(addresses[idx].trim(), burn.hash);
+
+                          }
+                }
+                else{
+                  alert("Put addresses you want to burn");
+                }
+            }
+      
+            function appendTable(address, hash){
+                var tbodyRef = document.getElementById('myTable').getElementsByTagName('tbody')[0];
+                // Insert a row at the end of table
+                var newRow = tbodyRef.insertRow();
+                
+                // Insert a cell at the end of the row
+                var newCell = newRow.insertCell();
+                // Append a text node to the cell
+                var newText = document.createTextNode(address);
+                newCell.appendChild(newText);
+      
+                // Insert a cell at the end of the row
+                var newCell2 = newRow.insertCell();
+                // Append a text node to the cell
+                var newText2 = document.createTextNode(hash);
+                newCell2.appendChild(newText2);
+            }
+      
+            startBurn();
+        </script>
+  </body>
+</html>
